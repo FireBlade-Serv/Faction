@@ -1,5 +1,6 @@
 package eu.fireblade.faction.faction;
 
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -8,7 +9,8 @@ import org.bukkit.entity.Player;
 public class FactionCmd implements CommandExecutor {
 
 	private FactionManager fm;
-
+	private int changed = 0;
+	
 	public FactionCmd(FactionManager fm) {
 		this.fm = fm;
 	}
@@ -48,16 +50,60 @@ public class FactionCmd implements CommandExecutor {
 						}
 					}else if (args[0].equals("help")){
 						//liste des commandes
+					}else if(args[0].equals("add")) {
+						if(args.length == 2) {
+							if(fm.hasFaction(p)) {
+								if(fm.getRank(p).equals(FactionRank.ADMIN) || fm.getRank(p).equals(FactionRank.OWNER)) {
+									for(Player Online : Bukkit.getOnlinePlayers()) {
+										if(Online.getName().equals(args[1])) {
+											changed++;	
+											if(!fm.hasFaction(Online)) {
+												fm.addMember(fm.getFaction(p), Online);
+												p.sendMessage("Joueur ajouté à la faction.");																																											
+											}else {
+												p.sendMessage("Ce joueur a déjà une faction.");
+											}
+										}
+									}
+									if(changed == 0) p.sendMessage("Ce joueur est hors ligne.");
+									else changed=0;
+								}
+							}						
+						}else {
+							p.sendMessage("Utilisation de cette commande: /f add [NomDuJoueur]");
+						}
+					}else if(args[0].equals("del")){
+						if(args.length == 2) {
+							if(fm.hasFaction(p)) {
+								if(fm.getRank(p).equals(FactionRank.ADMIN) || fm.getRank(p).equals(FactionRank.OWNER)) {
+									for(Player Online : Bukkit.getOnlinePlayers()) {
+										if(Online.getName().equals(args[1])) {
+											if(fm.hasFaction(Online)) {
+												if(fm.getFaction(p).equals(fm.getFaction(Online))) {
+													changed++;	
+													if(!fm.getRank(Online).equals(FactionRank.OWNER)) {
+														fm.delMember(fm.getFaction(p), Online);
+														p.sendMessage("Joueur supprimé de la faction.");
+													}												
+												}else {
+													p.sendMessage("Ce joueur n'est pas dans la faction.");
+												}
+											}else {
+												p.sendMessage("Ce joueur n'est pas dans la faction.");
+											}
+										}
+									}
+									if(changed == 0) p.sendMessage("Ce joueur est hors ligne.");
+									else changed=0;
+								}
+							}
+						}
 					}else {
 						p.sendMessage("Cette commande n'existe pas utilise \"/f help\" pour avoir la liste des commandes.");
 					}
-				
-				}else {
-					p.sendMessage("Cette commande n'existe pas utilise \"/f help\" pour avoir la liste des commandes.");
 				}
 			}
 		}
 		return false;
 	}
-	
 }

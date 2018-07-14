@@ -1,6 +1,8 @@
 package eu.fireblade.faction.faction;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -38,8 +40,7 @@ public class FactionManager {
 	public void removeFaction(String name, Player p) {
 		if(!this.isFree(name)) {
 			if(p.getName().equals(config.getNewConfiguration().get("factions."+name+".owner"))) {
-				YamlConfiguration config = this.config.getNewConfiguration();
-				
+				YamlConfiguration config = this.config.getNewConfiguration();				
 				config.set("factions."+name, null);
 		
 				try {
@@ -55,7 +56,7 @@ public class FactionManager {
 		YamlConfiguration config = this.config.getNewConfiguration();
 		
 		if(!config.contains("factions")) {
-			return "non";
+			return "THISPLAYERHAVENOFACTION116545745";
 		}
 		
 		for(String factionName : config.getConfigurationSection("factions").getKeys(false)) {
@@ -64,27 +65,26 @@ public class FactionManager {
 			if(config.get("factions."+factionName+".owner").equals(p.getName())) {
 				return factionName;
 			}
-			for(String factionAdmins : config.getStringList("factions."+factionName+".admins")) {
-				if(factionAdmins.equals(p.getName())) {
-					return factionName;
+			if(config.contains("factions."+factionName+".admins")) {
+				for(String membres : config.getStringList("factions."+factionName+".admins")) {
+					if(membres.equals(p.getName())) return factionName;
 				}
 			}
-			for(String factionMembres : config.getStringList("factions."+factionName+".membres")) {
-				if(factionMembres.equals(p.getName())) {
-					return factionName;
+			if(config.contains("factions."+factionName+".membres")) {
+				for(String membres : config.getStringList("factions."+factionName+".membres")) {
+					if(membres.equals(p.getName())) return factionName;
 				}
-			}
+			}	
 		}
-		return "non";
+		return "THISPLAYERHAVENOFACTION116545745";
 	}
 	
 	public boolean hasFaction(Player p) {
-		if(getFaction(p).equals("non")) return false;
-		else return true;
+		return !(getFaction(p).equals("THISPLAYERHAVENOFACTION116545745"));
 	}
 	
 	public FactionRank getRank(Player p) {
-		if(hasFaction(p)) {
+		if(this.hasFaction(p)) {
 			YamlConfiguration config = this.config.getNewConfiguration();
 			
 			if(!config.contains("factions")) {
@@ -112,5 +112,46 @@ public class FactionManager {
 		}else {
 			return FactionRank.NOTHING;
 		}
-	}	
+	}
+	
+	public void addMember(String factionName, Player p) {
+		if(!this.hasFaction(p)) {
+			YamlConfiguration config = this.config.getNewConfiguration();
+			List<String> membres = new ArrayList<>();
+			for(String membre : config.getStringList("factions."+factionName+".membres")) {
+				membres.add(membre);
+			}
+			membres.add(p.getName());
+			config.set("factions."+factionName+".membres", membres);
+							
+			try {
+				config.save(this.config.getFile());
+			} catch(IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	public void delMember(String factionName, Player p) {
+		if(this.hasFaction(p)) {
+			if(this.getFaction(p).equals(factionName)) {
+				if(this.getRank(p).equals(FactionRank.MEMBER)) {
+					YamlConfiguration config = this.config.getNewConfiguration();
+					List<String> membres = new ArrayList<>();
+					for(String membre : config.getStringList("factions."+factionName+".membres")) {
+						membres.add(membre);
+					}
+					membres.remove(p.getName());
+					config.set("factions."+factionName+".membres", membres);
+					
+					try {
+						config.save(this.config.getFile());
+					} catch(IOException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		}
+	}
+	
 }

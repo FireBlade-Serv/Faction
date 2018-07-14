@@ -14,7 +14,7 @@ public class Main extends JavaPlugin{
 	private ChunkConfig config;
 	private ChunkManager man;
 	private FactionConfig fConfig;
-	private FactionManager fman;
+	private FactionManager fMan;
 	
 	@Override
 	public void onEnable() {
@@ -23,17 +23,17 @@ public class Main extends JavaPlugin{
 		this.config.initFolder();
 		this.config.initFile();
 		
-		this.man = new ChunkManager(this.config, this);
-		
 		this.fConfig = new FactionConfig(this);
 		this.fConfig.initFolder();
 		this.fConfig.initFile();
 		
-		this.fman = new FactionManager(this.fConfig, this);
+		this.fMan = new FactionManager(this.fConfig, this);
+		this.man = new ChunkManager(config, this, this.fMan);
 
-		getCommand("claim").setExecutor(new ChunkCmd(this.man));
+		getCommand("claim").setExecutor(new ChunkCmd(this.man, this.fMan));
+		getCommand("unclaim").setExecutor(new ChunkCmd(this.man, this.fMan));
 		
-		getCommand("f").setExecutor(new FactionCmd(this.fman));
+		getCommand("f").setExecutor(new FactionCmd(this.fMan));
 	}
 	
 	@Override
