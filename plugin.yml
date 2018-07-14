@@ -1,0 +1,7 @@
+name: Faction
+main: eu.fireblade.faction.Main
+author: _goldocelot_
+version: v0.0.1
+commands:
+ claim:
+  description: Cette commande permet de claim un chunk.
