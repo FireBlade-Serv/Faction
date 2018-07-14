@@ -18,12 +18,16 @@ public class ChunkCmd implements CommandExecutor{
 		if(sender instanceof Player) {
 			Player p = (Player) sender;
 			if(label.equals("claim")) {
-				FactionChunk fc = new FactionChunk(p.getLocation());
-				if(!cm.isClaimed(fc.getChunk())) {
-					cm.addToConfig(fc.getChunk());
-					p.sendMessage("Chunk claim");
+				if(p.getWorld().getName().equals("world")) {
+					FactionChunk fc = new FactionChunk(p.getLocation());
+					if(!cm.isClaimed(fc.getChunk())) {
+						cm.addToConfig(fc.getChunk());
+						p.sendMessage("Chunk claim");
+					}else {
+						p.sendMessage("Ce chunk est déjà claim !");
+					}
 				}else {
-					p.sendMessage("Ce chunk est déjà claim !");
+					p.sendMessage("Vous ne pouvez pas claim ailleur que dans l'overworld !");
 				}
 			}
 		}
