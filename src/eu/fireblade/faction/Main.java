@@ -33,7 +33,7 @@ public class Main extends JavaPlugin{
 		getCommand("claim").setExecutor(new ChunkCmd(this.man, this.fMan));
 		getCommand("unclaim").setExecutor(new ChunkCmd(this.man, this.fMan));
 		
-		getCommand("f").setExecutor(new FactionCmd(this.fMan));
+		getCommand("f").setExecutor(new FactionCmd(this.fMan, this.fConfig));
 	}
 	
 	@Override

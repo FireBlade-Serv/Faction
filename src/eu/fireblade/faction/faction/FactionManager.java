@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 
@@ -52,7 +53,7 @@ public class FactionManager {
 		}
 	}
 	
-	public String getFaction(Player p) {
+	public String getFaction(OfflinePlayer p) {
 		YamlConfiguration config = this.config.getNewConfiguration();
 		
 		if(!config.contains("factions")) {
@@ -60,11 +61,8 @@ public class FactionManager {
 		}
 		
 		for(String factionName : config.getConfigurationSection("factions").getKeys(false)) {
-			if(factionName == null) continue;
-			
-			if(config.get("factions."+factionName+".owner").equals(p.getName())) {
-				return factionName;
-			}
+			if(factionName == null) continue;			
+			if(config.get("factions."+factionName+".owner").equals(p.getName())) return factionName;
 			if(config.contains("factions."+factionName+".admins")) {
 				for(String membres : config.getStringList("factions."+factionName+".admins")) {
 					if(membres.equals(p.getName())) return factionName;
@@ -79,42 +77,37 @@ public class FactionManager {
 		return "THISPLAYERHAVENOFACTION116545745";
 	}
 	
-	public boolean hasFaction(Player p) {
+	public boolean hasFaction(OfflinePlayer p) {
 		return !(getFaction(p).equals("THISPLAYERHAVENOFACTION116545745"));
 	}
 	
-	public FactionRank getRank(Player p) {
+	public FactionRank getRank(OfflinePlayer p) {
 		if(this.hasFaction(p)) {
 			YamlConfiguration config = this.config.getNewConfiguration();
 			
-			if(!config.contains("factions")) {
-				return FactionRank.NOTHING;
-			}
+			if(!config.contains("factions")) return FactionRank.NOTHING;
 			
 			for(String factionName : config.getConfigurationSection("factions").getKeys(false)) {
-				if(factionName == null) continue;
-				
-				if(config.get("factions."+factionName+".owner").equals(p.getName())) {
-					return FactionRank.OWNER;
-				}
-				for(String factionAdmins : config.getStringList("factions."+factionName+".admins")) {
-					if(factionAdmins.equals(p.getName())) {
-						return FactionRank.ADMIN;
+				if(factionName == null) continue;			
+				if(config.get("factions."+factionName+".owner").equals(p.getName())) return FactionRank.OWNER;
+				if(config.contains("factions."+factionName+".admins")) {
+					for(String membres : config.getStringList("factions."+factionName+".admins")) {
+						if(membres.equals(p.getName())) return FactionRank.ADMIN;
 					}
 				}
-				for(String factionMembres : config.getStringList("factions."+factionName+".membres")) {
-					if(factionMembres.equals(p.getName())) {
-						return FactionRank.MEMBER;
+				if(config.contains("factions."+factionName+".membres")) {
+					for(String membres : config.getStringList("factions."+factionName+".membres")) {
+						if(membres.equals(p.getName())) return FactionRank.MEMBER;
 					}
-				}
+				}	
 			}
-			return FactionRank.NOTHING;					
+			return FactionRank.NOTHING;				
 		}else {
 			return FactionRank.NOTHING;
 		}
 	}
 	
-	public void addMember(String factionName, Player p) {
+	public void addMember(String factionName, OfflinePlayer p) {
 		if(!this.hasFaction(p)) {
 			YamlConfiguration config = this.config.getNewConfiguration();
 			List<String> membres = new ArrayList<>();
@@ -132,7 +125,7 @@ public class FactionManager {
 		}
 	}
 	
-	public void delMember(String factionName, Player p) {
+	public void delMember(String factionName, OfflinePlayer p) {
 		if(this.hasFaction(p)) {
 			if(this.getFaction(p).equals(factionName)) {
 				if(this.getRank(p).equals(FactionRank.MEMBER)) {
@@ -149,6 +142,55 @@ public class FactionManager {
 					} catch(IOException e) {
 						e.printStackTrace();
 					}
+				}else if (this.getRank(p).equals(FactionRank.ADMIN)) {
+					YamlConfiguration config = this.config.getNewConfiguration();
+					List<String> admins = new ArrayList<>();
+					for(String admin : config.getStringList("factions."+factionName+".admins")) {
+						admins.add(admin);
+					}
+					admins.remove(p.getName());
+					config.set("factions."+factionName+".admins", admins);
+					
+					try {
+						config.save(this.config.getFile());
+					} catch(IOException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		}
+	}
+	
+	public void rankupMember(String factionName, OfflinePlayer p) {
+		if(this.hasFaction(p)) {
+			if(this.getFaction(p).equals(factionName)) {
+				if(this.getRank(p).equals(FactionRank.MEMBER)) {
+					this.delMember(factionName, p);
+					YamlConfiguration config = this.config.getNewConfiguration();
+					List<String> admins = new ArrayList<>();
+					for(String admin : config.getStringList("factions."+factionName+".admins")) {
+						admins.add(admin);
+					}
+					admins.add(p.getName());	
+					config.set("factions."+factionName+".admins", admins);
+
+					
+					try {
+						config.save(this.config.getFile());
+					} catch(IOException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		}
+	}
+	
+	public void rankdownMember(String factionName, OfflinePlayer p) {		
+		if(this.hasFaction(p)) {
+			if(this.getFaction(p).equals(factionName)) {
+				if(this.getRank(p).equals(FactionRank.ADMIN)) {
+					this.delMember(factionName, p);
+					this.addMember(factionName, p);				
 				}
 			}
 		}
