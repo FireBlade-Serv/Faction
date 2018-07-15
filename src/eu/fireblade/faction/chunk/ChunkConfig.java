@@ -18,9 +18,7 @@ public class ChunkConfig {
 	}
 	
 	public void initFolder() {
-		if(!this.main.getDataFolder().exists()) {
-			this.main.getDataFolder().mkdirs();
-		}
+		if(!this.main.getDataFolder().exists()) this.main.getDataFolder().mkdirs();
 	}
 	
 	public void initFile() {
@@ -46,8 +44,7 @@ public class ChunkConfig {
 			config.load(this.file);
 		} catch (IOException | InvalidConfigurationException e) {
 			e.printStackTrace();
-		}
-		
+		} 
 		return config;
 	}
 	

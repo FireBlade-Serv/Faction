@@ -30,18 +30,10 @@ public class ChunkCmd implements CommandExecutor{
 							if(!cm.isClaimed(fc.getChunk())) {
 								cm.claimChunk(fc.getChunk(), p);
 								p.sendMessage("Chunk claim");
-							}else {
-								p.sendMessage("Ce chunk est déjà claim !");
-							}
-						}else {
-							p.sendMessage("Seul l'owner et les administrateurs d'un faction peuvent claim !");
-						}
-					}else {
-						p.sendMessage("Vous ne pouvez pas claim sans avoir de faction !");
-					}
-				}else {
-					p.sendMessage("Vous ne pouvez pas claim ailleur que dans l'overworld !");
-				}
+							}else p.sendMessage("Ce chunk est déjà claim !");
+						}else p.sendMessage("Seul l'owner et les administrateurs d'un faction peuvent claim !");
+					}else p.sendMessage("Vous ne pouvez pas claim sans avoir de faction !");
+				}else p.sendMessage("Vous ne pouvez pas claim ailleur que dans l'overworld !");
 			}else if(label.equals("unclaim")) {
 				if(p.getWorld().getName().equals("world")) {
 					if(fm.hasFaction(p)) {
@@ -51,22 +43,12 @@ public class ChunkCmd implements CommandExecutor{
 								if(cm.hasClaim(fc.getChunk(), fm.getFaction(p))) {
 									cm.unclaimChunk(fc.getChunk(), p);
 									p.sendMessage("Chunk unclaim");
-								}else {
-									p.sendMessage("Ce claim ne vous appartient pas !");
-								}
-							}else {
-								p.sendMessage("Ce chunk n'est pas claim !");
-							}
+								}else p.sendMessage("Ce claim ne vous appartient pas !");
+							}else p.sendMessage("Ce chunk n'est pas claim !");
 						}
 					}
-				}else {
-					p.sendMessage("Vous ne pouvez pas unclaim ailleur que dans l'overworld !");
-				}
+				}else p.sendMessage("Vous ne pouvez pas unclaim ailleur que dans l'overworld !");
 			}
-		}
-		return false;
-	}
-
-	
-	
+		} return false;
+	}	
 }

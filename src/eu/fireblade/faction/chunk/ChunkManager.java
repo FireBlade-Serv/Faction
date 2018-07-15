@@ -34,13 +34,9 @@ public class ChunkManager {
 		String partx = null, partz = null;
 		
 		for(String part : text.split("@")) {
-			if(part.startsWith("x=")) {
-				partx = part.substring(2);
-			}else if(part.startsWith("z=")) {
-				partz = part.substring(2);
-			}
-		}
-		
+			if(part.startsWith("x=")) partx = part.substring(2);
+			else if(part.startsWith("z=")) partz = part.substring(2);
+		} 
 		return this.main.getServer().getWorld("world").getChunkAt(Integer.valueOf(partx), Integer.valueOf(partz));
 	}
 	

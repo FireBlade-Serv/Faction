@@ -58,9 +58,7 @@ public class FactionManager {
 	public String getFaction(OfflinePlayer p) {
 		YamlConfiguration config = this.config.getNewConfiguration();
 		
-		if(!config.contains("factions")) {
-			return "THISPLAYERHAVENOFACTION116545745";
-		}
+		if(!config.contains("factions")) return "THISPLAYERHAVENOFACTION116545745";
 		
 		for(String factionName : config.getConfigurationSection("factions").getKeys(false)) {
 			if(factionName == null) continue;			
@@ -233,13 +231,9 @@ public class FactionManager {
 		String partx = null, party = null, partz = null;
 		
 		for(String part : loc.split("@")) {
-			if(part.startsWith("x=")) {
-				partx = part.substring(2);
-			}else if(part.startsWith("y=")) {
-				party = part.substring(2);
-			}else if(part.startsWith("z=")) {
-				partz = part.substring(2);
-			}
+			if(part.startsWith("x=")) partx = part.substring(2);
+			else if(part.startsWith("y=")) party = part.substring(2);
+			else if(part.startsWith("z=")) partz = part.substring(2);
 		}
 		
 		return new Location(Bukkit.getWorld("world"), Double.valueOf(partx), Double.valueOf(party), Double.valueOf(partz));

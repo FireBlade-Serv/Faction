@@ -18,9 +18,7 @@ public class FactionConfig {
 	}
 	
 	public void initFolder() {
-		if(!this.main.getDataFolder().exists()) {
-			this.main.getDataFolder().mkdirs();
-		}
+		if(!this.main.getDataFolder().exists()) this.main.getDataFolder().mkdirs();
 	}
 	
 	public void initFile() {

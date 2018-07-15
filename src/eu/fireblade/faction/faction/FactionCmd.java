@@ -25,7 +25,6 @@ public class FactionCmd implements CommandExecutor {
 			Player p = (Player)sender;
 			if(label.equals("f")) {
 				if(args.length > 0) {
-
 					if(args[0].equals("create")) {
 						if(!fm.hasFaction(p)) {
 							if(args.length == 2) {
