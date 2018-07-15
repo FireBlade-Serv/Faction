@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -194,6 +196,53 @@ public class FactionManager {
 				}
 			}
 		}
+	}
+	
+	public void setFactionHome(String factionName, Player p) {
+		if(this.hasFaction(p)) {
+			if(this.getFaction(p).equals(factionName)) {
+				if (this.getRank(p).equals(FactionRank.OWNER)) {
+					YamlConfiguration config = this.config.getNewConfiguration();
+					config.set("factions."+factionName+".home", locFormat(p.getLocation()));
+					
+					try {
+						config.save(this.config.getFile());
+					} catch(IOException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		}
+	}
+	
+	public void tpFactionHome(String factionName, Player p) {
+		if(this.hasFaction(p)) {
+			if(this.getFaction(p).equals(factionName)) {
+				YamlConfiguration config = this.config.getNewConfiguration();
+				p.teleport(this.locReader((String) config.get("factions."+factionName+".home")));
+			}
+		}
+	}
+	
+	public String locFormat (Location loc) {
+		//x=1@y=2@z=3
+		return "x="+loc.getX()+"@y="+loc.getY()+"@z="+loc.getZ();
+	}
+	
+	public Location locReader (String loc) {
+		String partx = null, party = null, partz = null;
+		
+		for(String part : loc.split("@")) {
+			if(part.startsWith("x=")) {
+				partx = part.substring(2);
+			}else if(part.startsWith("y=")) {
+				party = part.substring(2);
+			}else if(part.startsWith("z=")) {
+				partz = part.substring(2);
+			}
+		}
+		
+		return new Location(Bukkit.getWorld("world"), Double.valueOf(partx), Double.valueOf(party), Double.valueOf(partz));
 	}
 	
 }

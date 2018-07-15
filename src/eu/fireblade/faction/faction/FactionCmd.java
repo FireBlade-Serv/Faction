@@ -177,6 +177,20 @@ public class FactionCmd implements CommandExecutor {
 								}else p.sendMessage("Seul l'owner peut utiliser cette commande !");
 							}else p.sendMessage("Il faut une faction pour utiliser cette commande !");
 						}else p.sendMessage("Utilisation de cette commande: /f rankup [NomDuJoueur]");
+					}else if(args[0].equals("sethome")) {
+						if(fm.hasFaction(p)) {
+							if(fm.getRank(p).equals(FactionRank.OWNER)) {
+								fm.setFactionHome(fm.getFaction(p), p);
+								p.sendMessage("L'home de ta faction a bien été modifié !");
+							}else p.sendMessage("Seul l'owner peut utiliser cette commande !");
+						}else p.sendMessage("Il faut une faction pour utiliser cette commande !"); 						
+					}else if(args[0].equals("home")) {
+						if(fm.hasFaction(p)) {
+							if(config.getNewConfiguration().contains("factions."+fm.getFaction(p)+".home")) {
+								//attendre 5 seconde sans bouger
+								fm.tpFactionHome(fm.getFaction(p), p);
+							}else p.sendMessage("Ta faction n'a pas créée d'home !");					
+						}else p.sendMessage("Il faut une faction pour utiliser cette commande !"); 		
 					}else p.sendMessage("Cette commande n'existe pas utilise \"/f help\" pour avoir la liste des commandes.");
 				}
 			}
