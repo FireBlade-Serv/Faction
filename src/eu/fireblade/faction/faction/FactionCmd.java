@@ -26,12 +26,14 @@ public class FactionCmd implements CommandExecutor {
 			if(label.equals("f")) {
 				if(args.length > 0) {
 					if(args[0].equals("create")) {
-						if(!fm.hasFaction(p)) {
-							if(args.length == 2) {
-								fm.createFaction(args[1], p);
-								p.sendMessage("La faction \""+args[1]+"\" a bien été créée");
-							}else p.sendMessage("Utilisation de cette commande: /f create [NomDeLaFaction]");
-						}else p.sendMessage("Tu as déjà une faction !");
+						if(fm.isFree(args[1])) {
+							if(!fm.hasFaction(p)) {
+								if(args.length == 2) {
+									fm.createFaction(args[1], p);
+									p.sendMessage("La faction \""+args[1]+"\" a bien été créée");
+								}else p.sendMessage("Utilisation de cette commande: /f create [NomDeLaFaction]");
+							}else p.sendMessage("Tu as déjà une faction !");
+						}else p.sendMessage("Ce nom de faction est occupé !");
 					}else if(args[0].equals("delete")) {
 						if(fm.hasFaction(p)) {
 							if(fm.getRank(p).equals(FactionRank.OWNER)) {
@@ -68,34 +70,26 @@ public class FactionCmd implements CommandExecutor {
 									for(String membre : config.getNewConfiguration().getStringList("factions."+fm.getFaction(p)+".membres")) {
 										if(membre.equals(args[1])) {
 											OfflinePlayer target = Bukkit.getServer().getOfflinePlayer(membre);
-											if(fm.hasFaction(target)) {
-												if(fm.getFaction(p).equals(fm.getFaction(target))) {
-													changed++;	
-													fm.delMember(fm.getFaction(p), target);
-													p.sendMessage("Joueur supprimé de la faction.");
-													return false;
-												}else p.sendMessage("Ce joueur n'est pas dans ta faction.");
-											}else p.sendMessage("Ce joueur n'est pas dans ta faction.");
+											changed++;	
+											fm.delMember(fm.getFaction(p), target);
+											p.sendMessage("Joueur supprimé de la faction.");
+											return false;
 										}
 									}
 									for(String admin : config.getNewConfiguration().getStringList("factions."+fm.getFaction(p)+".admins")) {
 										if(admin.equals(args[1])) {
 											OfflinePlayer target = Bukkit.getServer().getOfflinePlayer(admin);
-											if(fm.hasFaction(target)) {
-												if(fm.getFaction(p).equals(fm.getFaction(target))) {
-													changed++;	
-													fm.delMember(fm.getFaction(p), target);
-													p.sendMessage("Joueur supprimé de la faction.");
-													return false;
-												}else p.sendMessage("Ce joueur n'est pas dans ta faction.");
-											}else p.sendMessage("Ce joueur n'est pas dans ta faction.");
+											changed++;	
+											fm.delMember(fm.getFaction(p), target);
+											p.sendMessage("Joueur supprimé de la faction.");
+											return false;
 										}
 									}
 									if(config.getNewConfiguration().get("factions."+fm.getFaction(p)+".owner").equals(args[1])) {
 										changed++;
 										p.sendMessage("Vous ne pouvez pas supprimer l'owner !");
 									}
-									if(changed == 0) p.sendMessage("Ce joueur est introuvable.");
+									if(changed == 0) p.sendMessage("Ce joueur n'est pas dans ta faction !");
 									else changed=0;
 								} else p.sendMessage("Seul l'owner et les admins d'une faction peuvent utiliser cette commande !");
 							}else p.sendMessage("Il faut une faction pour utiliser cette commande !");
@@ -107,33 +101,24 @@ public class FactionCmd implements CommandExecutor {
 									for(String membre : config.getNewConfiguration().getStringList("factions."+fm.getFaction(p)+".membres")) {
 										if(membre.equals(args[1])) {
 											OfflinePlayer target = Bukkit.getServer().getOfflinePlayer(membre);
-											if(fm.hasFaction(target)) {
-												if(fm.getFaction(p).equals(fm.getFaction(target))) {
-													changed++;
-													fm.rankupMember(fm.getFaction(p), target);
-													p.sendMessage("Joueur mit au grade: admin");
-													return false;
-												}else p.sendMessage("Ce joueur n'est pas dans ta faction.");
-											}else p.sendMessage("Ce joueur n'est pas dans ta faction.");
+											changed++;
+											fm.rankupMember(fm.getFaction(p), target);
+											p.sendMessage("Joueur mit au grade: admin");
+											return false;
 										}
 									}
 									for(String admin : config.getNewConfiguration().getStringList("factions."+fm.getFaction(p)+".admins")) {
 										if(admin.equals(args[1])) {
-											OfflinePlayer target = Bukkit.getServer().getOfflinePlayer(admin);
-											if(fm.hasFaction(target)) {
-												if(fm.getFaction(p).equals(fm.getFaction(target))) {
-													changed++;
-													p.sendMessage("On ne peut pas rankup au dessus d'admin !");
-													return false;
-												}else p.sendMessage("Ce joueur n'est pas dans ta faction.");
-											}else p.sendMessage("Ce joueur n'est pas dans ta faction.");
+											changed++;
+											p.sendMessage("On ne peut pas rankup au dessus d'admin !");
+											return false;
 										}
 									}
 									if(config.getNewConfiguration().get("factions."+fm.getFaction(p)+".owner").equals(args[1])) {
 										changed++;
 										p.sendMessage("Vous ne pouvez pas rankup l'owner !");
 									}
-									if(changed == 0) p.sendMessage("Ce joueur est introuvable.");
+									if(changed == 0) p.sendMessage("Ce joueur n'est pas dans ta faction !");
 									else changed=0;
 								}else p.sendMessage("Seul l'owner peut utiliser cette commande !");
 							}else p.sendMessage("Il faut une faction pour utiliser cette commande !");
@@ -144,34 +129,25 @@ public class FactionCmd implements CommandExecutor {
 								if(fm.getRank(p).equals(FactionRank.OWNER)) {
 									for(String membre : config.getNewConfiguration().getStringList("factions."+fm.getFaction(p)+".membres")) {
 										if(membre.equals(args[1])) {
-											OfflinePlayer target = Bukkit.getServer().getOfflinePlayer(membre);
-											if(fm.hasFaction(target)) {
-												if(fm.getFaction(p).equals(fm.getFaction(target))) {
-													changed++;
-													p.sendMessage("On ne peut pas rankdown en dessous de membre !");
-													return false;
-												}else p.sendMessage("Ce joueur n'est pas dans ta faction.");
-											}else p.sendMessage("Ce joueur n'est pas dans ta faction.");
+											changed++;
+											p.sendMessage("On ne peut pas rankdown en dessous de membre !");
+											return false;
 										}
 									}
 									for(String admin : config.getNewConfiguration().getStringList("factions."+fm.getFaction(p)+".admins")) {
 										if(admin.equals(args[1])) {
 											OfflinePlayer target = Bukkit.getServer().getOfflinePlayer(admin);
-											if(fm.hasFaction(target)) {
-												if(fm.getFaction(p).equals(fm.getFaction(target))) {
-													changed++;
-													fm.rankdownMember(fm.getFaction(p), target);
-													p.sendMessage("Joueur mit au grade: membre");
-													return false;
-												}else p.sendMessage("Ce joueur n'est pas dans ta faction.");
-											}else p.sendMessage("Ce joueur n'est pas dans ta faction.");
+											changed++;
+											fm.rankdownMember(fm.getFaction(p), target);
+											p.sendMessage("Joueur mit au grade: membre");
+											return false;
 										}
 									}
 									if(config.getNewConfiguration().get("factions."+fm.getFaction(p)+".owner").equals(args[1])) {
 										changed++;
 										p.sendMessage("Vous ne pouvez pas rankdown l'owner !");
 									}
-									if(changed == 0) p.sendMessage("Ce joueur est introuvable.");
+									if(changed == 0) p.sendMessage("Ce joueur n'est pas dans ta faction !");
 									else changed=0;
 								}else p.sendMessage("Seul l'owner peut utiliser cette commande !");
 							}else p.sendMessage("Il faut une faction pour utiliser cette commande !");

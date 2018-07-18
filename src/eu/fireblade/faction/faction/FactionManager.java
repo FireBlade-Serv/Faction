@@ -64,15 +64,11 @@ public class FactionManager {
 		for(String factionName : config.getConfigurationSection("factions").getKeys(false)) {
 			if(factionName == null) continue;			
 			if(config.get("factions."+factionName+".owner").equals(p.getName())) return factionName;
-			if(config.contains("factions."+factionName+".admins")) {
-				for(String membres : config.getStringList("factions."+factionName+".admins")) {
-					if(membres.equals(p.getName())) return factionName;
-				}
+			for(String membres : config.getStringList("factions."+factionName+".admins")) {
+				if(membres.equals(p.getName())) return factionName;
 			}
-			if(config.contains("factions."+factionName+".membres")) {
-				for(String membres : config.getStringList("factions."+factionName+".membres")) {
-					if(membres.equals(p.getName())) return factionName;
-				}
+			for(String membres : config.getStringList("factions."+factionName+".membres")) {
+				if(membres.equals(p.getName())) return factionName;
 			}	
 		}
 		return "THISPLAYERHAVENOFACTION116545745";
@@ -91,15 +87,11 @@ public class FactionManager {
 			for(String factionName : config.getConfigurationSection("factions").getKeys(false)) {
 				if(factionName == null) continue;			
 				if(config.get("factions."+factionName+".owner").equals(p.getName())) return FactionRank.OWNER;
-				if(config.contains("factions."+factionName+".admins")) {
-					for(String membres : config.getStringList("factions."+factionName+".admins")) {
-						if(membres.equals(p.getName())) return FactionRank.ADMIN;
-					}
+				for(String membres : config.getStringList("factions."+factionName+".admins")) {
+					if(membres.equals(p.getName())) return FactionRank.ADMIN;
 				}
-				if(config.contains("factions."+factionName+".membres")) {
-					for(String membres : config.getStringList("factions."+factionName+".membres")) {
-						if(membres.equals(p.getName())) return FactionRank.MEMBER;
-					}
+				for(String membres : config.getStringList("factions."+factionName+".membres")) {
+					if(membres.equals(p.getName())) return FactionRank.MEMBER;
 				}	
 			}
 			return FactionRank.NOTHING;				
