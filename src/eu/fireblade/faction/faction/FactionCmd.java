@@ -186,12 +186,11 @@ public class FactionCmd implements CommandExecutor {
 					}else if(args[0].equals("home")) {
 						if(fm.hasFaction(p)) {
 							if(config.getNewConfiguration().contains("factions."+fm.getFaction(p)+".home")) {
-								//attendre 5 seconde sans bouger
 								fm.tpFactionHome(fm.getFaction(p), p);
 							}else p.sendMessage("Ta faction n'a pas créée d'home !");					
 						}else p.sendMessage("Il faut une faction pour utiliser cette commande !"); 		
 					}else p.sendMessage("Cette commande n'existe pas utilise \"/f help\" pour avoir la liste des commandes.");
-				}
+				}else p.sendMessage("Cette commande n'existe pas utilise \"/f help\" pour avoir la liste des commandes.");
 			}
 		}
 		return false;

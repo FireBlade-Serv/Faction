@@ -14,6 +14,7 @@ import eu.fireblade.faction.Main;
 
 public class FactionManager {
 	
+	public List<Player> tpJoueur = new ArrayList<>();
 	private FactionConfig config;
 	@SuppressWarnings("unused")
 	private Main main;
@@ -216,8 +217,15 @@ public class FactionManager {
 	public void tpFactionHome(String factionName, Player p) {
 		if(this.hasFaction(p)) {
 			if(this.getFaction(p).equals(factionName)) {
-				YamlConfiguration config = this.config.getNewConfiguration();
-				p.teleport(this.locReader((String) config.get("factions."+factionName+".home")));
+				this.tpJoueur.add(p);
+				p.sendMessage("Téléportation dans 5 seconde, ne vous deplacé pas !");
+				Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(main, new Runnable() {
+					
+					@Override
+					public void run() {
+						tpScheduler(p, factionName);
+					}
+				}, 100L);
 			}
 		}
 	}
@@ -237,6 +245,14 @@ public class FactionManager {
 		}
 		
 		return new Location(Bukkit.getWorld("world"), Double.valueOf(partx), Double.valueOf(party), Double.valueOf(partz));
+	}
+	
+	public void tpScheduler(Player p, String factionName) {
+		if(this.tpJoueur.contains(p)){
+			YamlConfiguration config = this.config.getNewConfiguration();
+			p.teleport(this.locReader((String) config.get("factions."+factionName+".home")));
+			this.tpJoueur.remove(p);
+		}	
 	}
 	
 }
