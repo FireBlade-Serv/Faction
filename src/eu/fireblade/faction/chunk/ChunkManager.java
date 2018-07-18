@@ -26,14 +26,13 @@ public class ChunkManager {
 	}
 	
 	public String format(Chunk c) {
-		//   x=1@y=2
-		return "x="+c.getX()+"@"+"z="+c.getZ();
+		return "x="+c.getX()+" "+"z="+c.getZ();
 	}
 	
 	public Chunk readFormat(String text) {
 		String partx = null, partz = null;
 		
-		for(String part : text.split("@")) {
+		for(String part : text.split(" ")) {
 			if(part.startsWith("x=")) partx = part.substring(2);
 			else if(part.startsWith("z=")) partz = part.substring(2);
 		} 

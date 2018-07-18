@@ -202,7 +202,9 @@ public class FactionManager {
 			if(this.getFaction(p).equals(factionName)) {
 				if (this.getRank(p).equals(FactionRank.OWNER)) {
 					YamlConfiguration config = this.config.getNewConfiguration();
-					config.set("factions."+factionName+".home", locFormat(p.getLocation()));
+					config.set("factions."+factionName+".home.x", p.getLocation().getX());
+					config.set("factions."+factionName+".home.y", p.getLocation().getY());
+					config.set("factions."+factionName+".home.z", p.getLocation().getZ());
 					
 					try {
 						config.save(this.config.getFile());
@@ -230,27 +232,15 @@ public class FactionManager {
 		}
 	}
 	
-	public String locFormat (Location loc) {
-		//x=1@y=2@z=3
-		return "x="+loc.getX()+"@y="+loc.getY()+"@z="+loc.getZ();
-	}
-	
-	public Location locReader (String loc) {
-		String partx = null, party = null, partz = null;
-		
-		for(String part : loc.split("@")) {
-			if(part.startsWith("x=")) partx = part.substring(2);
-			else if(part.startsWith("y=")) party = part.substring(2);
-			else if(part.startsWith("z=")) partz = part.substring(2);
-		}
-		
-		return new Location(Bukkit.getWorld("world"), Double.valueOf(partx), Double.valueOf(party), Double.valueOf(partz));
+	public Location locReader (String homePath) {	
+		YamlConfiguration config = this.config.getNewConfiguration();
+		return new Location(Bukkit.getWorld("world"), (Double) config.get(homePath+".x"),
+				(Double) config.get(homePath+".y"), (Double) config.get(homePath+".z"));
 	}
 	
 	public void tpScheduler(Player p, String factionName) {
 		if(this.tpJoueur.contains(p)){
-			YamlConfiguration config = this.config.getNewConfiguration();
-			p.teleport(this.locReader((String) config.get("factions."+factionName+".home")));
+			p.teleport(this.locReader("factions."+factionName+".home"));
 			this.tpJoueur.remove(p);
 		}	
 	}
