@@ -5,47 +5,60 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+
+import eu.fireblade.faction.Config;
 
 public class FactionCmd implements CommandExecutor {
 
-	private FactionConfig config;
+	private Config config;
+	private FactionConfig fConfig;
 	private FactionManager fm;
 	private int changed = 0;
 	
-	public FactionCmd(FactionManager fm, FactionConfig config) {
+	public FactionCmd(FactionManager fm, FactionConfig fConfig, Config config) {
 		this.fm = fm;
+		this.fConfig = fConfig;
 		this.config = config;
 	}
 
 	@SuppressWarnings("deprecation")
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+		YamlConfiguration serverConfig = this.config.getNewConfiguration();
+		YamlConfiguration factionConfig = this.fConfig.getNewConfiguration();
+		String prefix = (String) serverConfig.get("faction.prefix");
+		
 		if(sender instanceof Player) {
 			Player p = (Player)sender;
 			if(label.equals("f")) {
 				if(args.length > 0) {
-					if(args[0].equals("create")) {
-						if(fm.isFree(args[1])) {
-							if(!fm.hasFaction(p)) {
-								if(args.length == 2) {
+					if(args[0].equals(serverConfig.get("factionCmd.argument.Creation de faction"))) {
+						if(args.length == 2) {
+							if(fm.isFree(args[1])) {
+								if(!fm.hasFaction(p)) {
 									fm.createFaction(args[1], p);
-									p.sendMessage("La faction \""+args[1]+"\" a bien été créée");
-								}else p.sendMessage("Utilisation de cette commande: /f create [NomDeLaFaction]");
-							}else p.sendMessage("Tu as déjà une faction !");
-						}else p.sendMessage("Ce nom de faction est occupé !");
-					}else if(args[0].equals("delete")) {
+									p.sendMessage(prefix+" "+serverConfig.get("factionCmd.message.Creation de faction reussie")
+									.toString().replace("[NomDeFaction]", fm.getFaction(p)));
+								}else p.sendMessage(prefix+" "+serverConfig.get("factionCmd.message.Le sender a deja une faction"));
+							}else p.sendMessage(prefix+" "+serverConfig.get("factionCmd.message.Nom de faction indisponible"));
+						}else p.sendMessage(prefix+" "+serverConfig.get("factionCmd.message.Utilisation")
+						.toString().replace("[Commande]", "/f "+serverConfig.get("factionCmd.argument.Creation de faction")+" [NomDeFaction]."));
+					}else if(args[0].equals(serverConfig.get("factionCmd.argument.Suppression de faction"))) {
 						if(fm.hasFaction(p)) {
 							if(fm.getRank(p).equals(FactionRank.OWNER)) {
 								if(args.length == 1) {
-									p.sendMessage("La faction \""+fm.getFaction(p)+"\"a bien été suppriméée");
+									p.sendMessage(prefix+" "+serverConfig.get("factionCmd.message.Suppression de faction reussie")
+									.toString().replace("[NomDeFaction]", fm.getFaction(p)));
 									fm.removeFaction(fm.getFaction(p), p);		
-								}else p.sendMessage("Utilisation de cette commande: /f delete");
-							}else p.sendMessage("Seul l'owner de ta faction peut utiliser cette commande !");
-						}else p.sendMessage("Tu n'as pas de faction !");
-					}else if (args[0].equals("help")){
+								}else p.sendMessage(prefix+" "+serverConfig.get("factionCmd.message.Utilisation")
+								.toString().replace("[Commande]", "/f "+serverConfig.get("factionCmd.argument.Suppression de faction")+"."));
+							}else p.sendMessage(prefix+" "+serverConfig.get("factionCmd.message.Commande pour owner uniquement"));
+						}else p.sendMessage(prefix+" "+serverConfig.get("factionCmd.message.Absence de faction"));
+					}else if (args[0].equals(serverConfig.get("factionCmd.argument.Aide"))){
 						//liste des commandes
-					}else if(args[0].equals("add")) {
+					}else if(args[0].equals(serverConfig.get("factionCmd.argument.Ajout de membre"))) {
 						if(args.length == 2) {
 							if(fm.hasFaction(p)) {
 								if(fm.getRank(p).equals(FactionRank.ADMIN) || fm.getRank(p).equals(FactionRank.OWNER)) {
@@ -54,119 +67,125 @@ public class FactionCmd implements CommandExecutor {
 											changed++;	
 											if(!fm.hasFaction(Online)) {
 												fm.addMember(fm.getFaction(p), Online);
-												p.sendMessage("Joueur ajouté à la faction.");	
-											}else p.sendMessage("Ce joueur a déjà une faction.");
+												p.sendMessage(prefix+" "+serverConfig.get("factionCmd.message.Ajout reussis"));	
+											}else p.sendMessage(prefix+" "+serverConfig.get("factionCmd.message.Joueur deja dans une faction"));
 										}
 									}
-									if(changed == 0) p.sendMessage("Ce joueur est hors ligne.");
+									if(changed == 0) p.sendMessage(prefix+" "+serverConfig.get("factionCmd.message.Joueur hors ligne"));
 									else changed=0;
-								} else p.sendMessage("Seul l'owner et les admins d'une faction peuvent utiliser cette commande !");
-							} else p.sendMessage("Il faut une faction pour utiliser cette commande !");						
-						}else p.sendMessage("Utilisation de cette commande: /f add [NomDuJoueur]");
-					}else if(args[0].equals("del")){
+								} else p.sendMessage(prefix+" "+serverConfig.get("factionCmd.message.Commande pour owner et admins uniquement"));
+							} else p.sendMessage(prefix+" "+serverConfig.get("factionCmd.message.Absence de faction"));						
+						}else p.sendMessage(prefix+" "+serverConfig.get("factionCmd.message.Utilisation")
+						.toString().replace("[Commande]", "/f "+serverConfig.get("factionCmd.argument.Ajout de membre")+" [NomDuJoueur]."));
+					}else if(args[0].equals(serverConfig.get("factionCmd.argument.Suppression de membre"))){
 						if(args.length == 2) {
 							if(fm.hasFaction(p)) {
 								if(fm.getRank(p).equals(FactionRank.ADMIN) || fm.getRank(p).equals(FactionRank.OWNER)) {
-									for(String membre : config.getNewConfiguration().getStringList("factions."+fm.getFaction(p)+".membres")) {
+									for(String membre : factionConfig.getStringList("factions."+fm.getFaction(p)+".membres")) {
 										if(membre.equals(args[1])) {
 											OfflinePlayer target = Bukkit.getServer().getOfflinePlayer(membre);
 											changed++;	
 											fm.delMember(fm.getFaction(p), target);
-											p.sendMessage("Joueur supprimé de la faction.");
+											p.sendMessage(prefix+" "+serverConfig.get("factionCmd.message.Joueur supprimer"));
 											return false;
 										}
 									}
-									for(String admin : config.getNewConfiguration().getStringList("factions."+fm.getFaction(p)+".admins")) {
+									for(String admin : factionConfig.getStringList("factions."+fm.getFaction(p)+".admins")) {
 										if(admin.equals(args[1])) {
 											OfflinePlayer target = Bukkit.getServer().getOfflinePlayer(admin);
 											changed++;	
 											fm.delMember(fm.getFaction(p), target);
-											p.sendMessage("Joueur supprimé de la faction.");
+											p.sendMessage(prefix+" "+serverConfig.get("factionCmd.message.Joueur supprimer"));
 											return false;
 										}
 									}
-									if(config.getNewConfiguration().get("factions."+fm.getFaction(p)+".owner").equals(args[1])) {
+									if(factionConfig.get("factions."+fm.getFaction(p)+".owner").equals(args[1])) {
 										changed++;
-										p.sendMessage("Vous ne pouvez pas supprimer l'owner !");
+										p.sendMessage(prefix+" "+serverConfig.get("factionCmd.message.Erreur suppresion owner"));
 									}
-									if(changed == 0) p.sendMessage("Ce joueur n'est pas dans ta faction !");
+									if(changed == 0) p.sendMessage(prefix+" "+serverConfig.get("factionCmd.message.Joueur dans autre fac"));
 									else changed=0;
-								} else p.sendMessage("Seul l'owner et les admins d'une faction peuvent utiliser cette commande !");
-							}else p.sendMessage("Il faut une faction pour utiliser cette commande !");
-						}else p.sendMessage("Utilisation de cette commande: /f del [NomDuJoueur]");
-					}else if(args[0].equals("rankup")){
+								} else p.sendMessage(prefix+" "+serverConfig.get("factionCmd.message.Commande pour owner et admins uniquement"));
+							}else p.sendMessage(prefix+" "+serverConfig.get("factionCmd.message.Absence de faction"));
+						}else p.sendMessage(prefix+" "+serverConfig.get("factionCmd.message.Utilisation")
+						.toString().replace("[Commande]", "/f "+serverConfig.get("factionCmd.argument.Suppression de membre")+" [NomDuJoueur]."));
+					}else if(args[0].equals(serverConfig.get("factionCmd.argument.Rank up de membre"))){
 						if(args.length == 2) {
 							if(fm.hasFaction(p)) {
 								if(fm.getRank(p).equals(FactionRank.OWNER)) {
-									for(String membre : config.getNewConfiguration().getStringList("factions."+fm.getFaction(p)+".membres")) {
+									for(String membre : factionConfig.getStringList("factions."+fm.getFaction(p)+".membres")) {
 										if(membre.equals(args[1])) {
 											OfflinePlayer target = Bukkit.getServer().getOfflinePlayer(membre);
 											changed++;
 											fm.rankupMember(fm.getFaction(p), target);
-											p.sendMessage("Joueur mit au grade: admin");
+											p.sendMessage(prefix+" "+serverConfig.get("factionCmd.message.Joueur rankup reussis"));
 											return false;
 										}
 									}
-									for(String admin : config.getNewConfiguration().getStringList("factions."+fm.getFaction(p)+".admins")) {
+									for(String admin : factionConfig.getStringList("factions."+fm.getFaction(p)+".admins")) {
 										if(admin.equals(args[1])) {
 											changed++;
-											p.sendMessage("On ne peut pas rankup au dessus d'admin !");
+											p.sendMessage(prefix+" "+serverConfig.get("factionCmd.message.Joueur rankup erreur"));
 											return false;
 										}
 									}
-									if(config.getNewConfiguration().get("factions."+fm.getFaction(p)+".owner").equals(args[1])) {
+									if(factionConfig.get("factions."+fm.getFaction(p)+".owner").equals(args[1])) {
 										changed++;
-										p.sendMessage("Vous ne pouvez pas rankup l'owner !");
+										p.sendMessage(prefix+" "+serverConfig.get("Vous ne pouvez pas rankup l'owner !"));
 									}
-									if(changed == 0) p.sendMessage("Ce joueur n'est pas dans ta faction !");
+									if(changed == 0) p.sendMessage(prefix+" "+serverConfig.get("factionCmd.message.Joueur dans autre fac"));
 									else changed=0;
-								}else p.sendMessage("Seul l'owner peut utiliser cette commande !");
-							}else p.sendMessage("Il faut une faction pour utiliser cette commande !");
-						}else p.sendMessage("Utilisation de cette commande: /f rankup [NomDuJoueur]");
-					}else if(args[0].equals("rankdown")){
+								}else p.sendMessage(prefix+" "+serverConfig.get("factionCmd.message.Commande pour owner uniquement"));
+							}else p.sendMessage(prefix+" "+serverConfig.get("factionCmd.message.Absence de faction"));
+						}else p.sendMessage(prefix+" "+serverConfig.get("factionCmd.message.Utilisation")
+						.toString().replace("[Commande]", "/f "+serverConfig.get("factionCmd.argument.Rank up de membre")+" [NomDuJoueur]."));
+					}else if(args[0].equals(serverConfig.get("factionCmd.argument.Rank down de membre"))){
 						if(args.length == 2) {
 							if(fm.hasFaction(p)) {
 								if(fm.getRank(p).equals(FactionRank.OWNER)) {
-									for(String membre : config.getNewConfiguration().getStringList("factions."+fm.getFaction(p)+".membres")) {
+									for(String membre : factionConfig.getStringList("factions."+fm.getFaction(p)+".membres")) {
 										if(membre.equals(args[1])) {
 											changed++;
-											p.sendMessage("On ne peut pas rankdown en dessous de membre !");
+											p.sendMessage(prefix+" "+serverConfig.get("factionCmd.message.Joueur rankdown erreur"));
 											return false;
 										}
 									}
-									for(String admin : config.getNewConfiguration().getStringList("factions."+fm.getFaction(p)+".admins")) {
+									for(String admin : factionConfig.getStringList("factions."+fm.getFaction(p)+".admins")) {
 										if(admin.equals(args[1])) {
 											OfflinePlayer target = Bukkit.getServer().getOfflinePlayer(admin);
 											changed++;
 											fm.rankdownMember(fm.getFaction(p), target);
-											p.sendMessage("Joueur mit au grade: membre");
+											p.sendMessage(prefix+" "+serverConfig.get("factionCmd.message.Joueur rankdown reussis"));
 											return false;
 										}
 									}
-									if(config.getNewConfiguration().get("factions."+fm.getFaction(p)+".owner").equals(args[1])) {
+									if(factionConfig.get("factions."+fm.getFaction(p)+".owner").equals(args[1])) {
 										changed++;
-										p.sendMessage("Vous ne pouvez pas rankdown l'owner !");
+										p.sendMessage(prefix+" "+serverConfig.get("factionCmd.message.Owner rankdown erreur"));
 									}
-									if(changed == 0) p.sendMessage("Ce joueur n'est pas dans ta faction !");
+									if(changed == 0) p.sendMessage(prefix+" "+serverConfig.get("factionCmd.message.Joueur dans autre fac"));
 									else changed=0;
-								}else p.sendMessage("Seul l'owner peut utiliser cette commande !");
-							}else p.sendMessage("Il faut une faction pour utiliser cette commande !");
-						}else p.sendMessage("Utilisation de cette commande: /f rankup [NomDuJoueur]");
-					}else if(args[0].equals("sethome")) {
+								}else p.sendMessage(prefix+" "+serverConfig.get("factionCmd.message.Commande pour owner uniquement"));
+							}else p.sendMessage(prefix+" "+serverConfig.get("factionCmd.message.Absence de faction"));
+						}else p.sendMessage(prefix+" "+serverConfig.get("factionCmd.message.Utilisation")
+						.toString().replace("[Commande]", "/f "+serverConfig.get("factionCmd.argument.Rank down de membre")+" [NomDuJoueur]."));
+					}else if(args[0].equals(serverConfig.get("factionCmd.argument.Sethome de faction"))) {
 						if(fm.hasFaction(p)) {
 							if(fm.getRank(p).equals(FactionRank.OWNER)) {
 								fm.setFactionHome(fm.getFaction(p), p);
-								p.sendMessage("L'home de ta faction a bien été modifié !");
-							}else p.sendMessage("Seul l'owner peut utiliser cette commande !");
-						}else p.sendMessage("Il faut une faction pour utiliser cette commande !"); 						
-					}else if(args[0].equals("home")) {
+								p.sendMessage(prefix+" "+serverConfig.get("factionCmd.message.modif home fac"));
+							}else p.sendMessage(prefix+" "+serverConfig.get("factionCmd.message.Commande pour owner uniquement"));
+						}else p.sendMessage(prefix+" "+serverConfig.get("factionCmd.message.Absence de faction")); 						
+					}else if(args[0].equals(serverConfig.get("factionCmd.argument.Tp au home de faction"))) {
 						if(fm.hasFaction(p)) {
-							if(config.getNewConfiguration().contains("factions."+fm.getFaction(p)+".home")) {
+							if(factionConfig.contains("factions."+fm.getFaction(p)+".home")) {
 								fm.tpFactionHome(fm.getFaction(p), p);
-							}else p.sendMessage("Ta faction n'a pas créée d'home !");					
-						}else p.sendMessage("Il faut une faction pour utiliser cette commande !"); 		
-					}else p.sendMessage("Cette commande n'existe pas utilise \"/f help\" pour avoir la liste des commandes.");
-				}else p.sendMessage("Cette commande n'existe pas utilise \"/f help\" pour avoir la liste des commandes.");
+							}else p.sendMessage(prefix+" "+serverConfig.get("factionCmd.message.absence home fac"));					
+						}else p.sendMessage(prefix+" "+serverConfig.get("factionCmd.message.Absence de faction")); 		
+					}else p.sendMessage(prefix+" "+serverConfig.get("factionCmd.message.Aide message")
+					.toString().replaceAll("[Commande]", "/f "+serverConfig.get("factionCmd.argument.Aide")));
+				}else p.sendMessage(prefix+" "+serverConfig.get("factionCmd.message.Aide message")
+				.toString().replaceAll("[Commande]", "/f "+serverConfig.get("factionCmd.argument.Aide")));
 			}
 		}
 		return false;

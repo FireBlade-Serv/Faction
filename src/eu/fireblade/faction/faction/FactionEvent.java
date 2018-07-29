@@ -13,16 +13,15 @@ public class FactionEvent implements Listener {
 		this.fm = fm;
 	}
 	
-
-	
 	@EventHandler
 	private void onMove(PlayerMoveEvent e) {
-		Player p = e.getPlayer();
-		
-		if(fm.tpJoueur.contains(p)) {
+		Player p = e.getPlayer();		
+		if(fm.containsPlayer(p)) {
 			p.sendMessage("Mouvement detecté téléportation annulée !");
-			fm.tpJoueur.remove(p);
+			fm.removePlayer(p);
 		}
 	}
+	
+	
 	
 }

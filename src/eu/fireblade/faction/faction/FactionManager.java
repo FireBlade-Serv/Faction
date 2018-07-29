@@ -11,17 +11,27 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 
 import eu.fireblade.faction.Main;
+import eu.fireblade.faction.chunk.ChunkConfig;
 
 public class FactionManager {
 	
-	public List<Player> tpJoueur = new ArrayList<>();
+	private List<Player> tpJoueur = new ArrayList<>();
 	private FactionConfig config;
-	@SuppressWarnings("unused")
+	private ChunkConfig cConfig;
 	private Main main;
 
-	public FactionManager(FactionConfig config, Main main) {
+	public FactionManager(FactionConfig config, ChunkConfig cConfig, Main main) {
 		this.main = main;
 		this.config = config;
+		this.cConfig = cConfig;
+	}
+	
+	public boolean containsPlayer(Player p) {
+		return this.tpJoueur.contains(p);
+	}
+	
+	public void removePlayer(Player p) {
+		this.tpJoueur.remove(p);
 	}
 	
 	public boolean isFree(String name){
@@ -29,9 +39,9 @@ public class FactionManager {
 	}
 	
 	public void createFaction(String name, Player factionOwner) {
-		if(this.isFree(name)) {
+		if(this.isFree(name.replace('&', '§'))) {
 			YamlConfiguration config = this.config.getNewConfiguration();
-			config.set("factions."+name+".owner", factionOwner.getName());
+			config.set("factions."+name.replace('&', '§')+"§r"+".owner", factionOwner.getName());
 			
 			try {
 				config.save(this.config.getFile());
@@ -46,9 +56,17 @@ public class FactionManager {
 			if(p.getName().equals(config.getNewConfiguration().get("factions."+name+".owner"))) {
 				YamlConfiguration config = this.config.getNewConfiguration();				
 				config.set("factions."+name, null);
-		
+				YamlConfiguration cConfig = this.cConfig.getNewConfiguration();
+				
+				for(String chunk : cConfig.getKeys(false) ) {
+					if(cConfig.get(chunk).equals(name)) {
+						cConfig.set(chunk, null);
+					}
+				}
+				
 				try {
 					config.save(this.config.getFile());
+					cConfig.save(this.cConfig.getFile());
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
@@ -62,14 +80,18 @@ public class FactionManager {
 		if(!config.contains("factions")) return "THISPLAYERHAVENOFACTION116545745";
 		
 		for(String factionName : config.getConfigurationSection("factions").getKeys(false)) {
-			if(factionName == null) continue;			
+			if(factionName == null) continue;
 			if(config.get("factions."+factionName+".owner").equals(p.getName())) return factionName;
-			for(String membres : config.getStringList("factions."+factionName+".admins")) {
-				if(membres.equals(p.getName())) return factionName;
+			if(config.contains("factions."+factionName+".admins")) {
+				for(String membres : config.getStringList("factions."+factionName+".admins")) {
+					if(membres.equals(p.getName())) return factionName;
+				}
 			}
-			for(String membres : config.getStringList("factions."+factionName+".membres")) {
-				if(membres.equals(p.getName())) return factionName;
-			}	
+			if(config.contains("factions."+factionName+".membres")) {
+				for(String membres : config.getStringList("factions."+factionName+".membres")) {
+					if(membres.equals(p.getName())) return factionName;
+				}	
+			}		
 		}
 		return "THISPLAYERHAVENOFACTION116545745";
 	}
@@ -87,14 +109,18 @@ public class FactionManager {
 			for(String factionName : config.getConfigurationSection("factions").getKeys(false)) {
 				if(factionName == null) continue;			
 				if(config.get("factions."+factionName+".owner").equals(p.getName())) return FactionRank.OWNER;
-				for(String membres : config.getStringList("factions."+factionName+".admins")) {
-					if(membres.equals(p.getName())) return FactionRank.ADMIN;
-				}
-				for(String membres : config.getStringList("factions."+factionName+".membres")) {
-					if(membres.equals(p.getName())) return FactionRank.MEMBER;
-				}	
+				if(config.contains("factions."+factionName+".admins")) {
+					for(String membres : config.getStringList("factions."+factionName+".admins")) {
+						if(membres.equals(p.getName())) return FactionRank.ADMIN;
+					}
+				}				
+				if(config.contains("factions."+factionName+".membres")) {
+					for(String membres : config.getStringList("factions."+factionName+".membres")) {
+						if(membres.equals(p.getName())) return FactionRank.MEMBER;
+					}	
+				}				
 			}
-			return FactionRank.NOTHING;				
+			return FactionRank.NOTHING;
 		}else {
 			return FactionRank.NOTHING;
 		}
@@ -226,8 +252,8 @@ public class FactionManager {
 	
 	public Location locReader (String homePath) {	
 		YamlConfiguration config = this.config.getNewConfiguration();
-		return new Location(Bukkit.getWorld("world"), (Double) config.get(homePath+".x"),
-				(Double) config.get(homePath+".y"), (Double) config.get(homePath+".z"));
+		return new Location(Bukkit.getWorld("world"), (double) config.get(homePath+".x"),
+				(double) config.get(homePath+".y"), (double) config.get(homePath+".z"));
 	}
 	
 	public void tpScheduler(Player p, String factionName) {

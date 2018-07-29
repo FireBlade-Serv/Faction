@@ -16,6 +16,7 @@ public class Main extends JavaPlugin{
 	private ChunkManager cMan;
 	private FactionConfig fConfig;
 	private FactionManager fMan;
+	private Config config;
 	
 	@Override
 	public void onEnable() {
@@ -28,13 +29,18 @@ public class Main extends JavaPlugin{
 		this.fConfig.initFolder();
 		this.fConfig.initFile();
 		
-		this.fMan = new FactionManager(this.fConfig, this);
+		this.config = new Config(this);
+		this.config.initFolder();
+		this.config.initFile();
+		this.config.initConfig();
+		
+		this.fMan = new FactionManager(this.fConfig, this.cConfig, this);
 		this.cMan = new ChunkManager(this.cConfig, this, this.fMan);;	
 
-		getCommand("claim").setExecutor(new ChunkCmd(this.cMan, this.fMan));
-		getCommand("unclaim").setExecutor(new ChunkCmd(this.cMan, this.fMan));
+		getCommand("claim").setExecutor(new ChunkCmd(this.cMan, this.fMan, config));
+		getCommand("unclaim").setExecutor(new ChunkCmd(this.cMan, this.fMan, config));
 		
-		getCommand("f").setExecutor(new FactionCmd(this.fMan, this.fConfig));
+		getCommand("f").setExecutor(new FactionCmd(this.fMan, this.fConfig, config));
 		
 		Bukkit.getPluginManager().registerEvents(new eu.fireblade.faction.faction.FactionEvent(fMan), this);
 	}
